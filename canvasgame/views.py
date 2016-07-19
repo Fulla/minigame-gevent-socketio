@@ -31,6 +31,7 @@ class GameNamespace(BaseNamespace):
         self.user = {'xpos':0,'ypos':0}
         self.bot = {'xpos':300,'ypos':300}
         self.bounds = {'xsup':994, 'ysup':738 }
+        self.dest = {'xpos':0,'ypos':0}
 
     # when the user sets the pause state
     def on_pause(self):
@@ -59,38 +60,39 @@ class GameNamespace(BaseNamespace):
     def botreset(self):
         self.bot['xpos'] = random.randint(0,self.bounds.get('xsup'))
         self.bot['ypos'] = random.randint(0,self.bounds.get('ysup'))
+        self.newdest()
         gevent.sleep(3)
         self.emit('botmove',{ 'coordx':self.bot.get('xpos'), 'coordy':self.bot.get('ypos') })
         self.botalive.set()
 
     # obtains a new destination for the bot, after it reaches the previous one
     def newdest(self):
-        self.bot['xpos'] = random.randint(0,self.bounds.get('xsup'))
-        self.bot['ypos'] = random.randint(0,self.bounds.get('ysup'))
+        self.dest['xpos'] = random.randint(0,self.bounds.get('xsup'))
+        self.dest['ypos'] = random.randint(0,self.bounds.get('ysup'))
 
     # returs tru if the current position of the bot is next to the current destination
     def arrivesdest(self):
-        pass
+        if abs( self.bot.get('xpos') - self.dest.get('xpos') ) < 30 and abs( self.bot.get('ypos') - self.dest.get('ypos') ) < 30:
+            return True
+        return False
 
     # when the server receives a socket connection request
     def recv_connect(self):
         def startGame():
             self.bot['xpos'] = random.randint(0,self.bounds.get('xsup'))
             self.bot['ypos'] = random.randint(0,self.bounds.get('ysup'))
+            self.newdest()
             self.emit('init', { 'coordx':self.user.get('xpos'), 'coordy':self.user.get('ypos') })
             self.botalive.set()
             self.running.set()
             while True: # the game loop
                 self.botmove()
                 self.detectCollision()
-
-                # if self.arrivesdest():
-                #     self.newdest()
-
+                if self.arrivesdest():
+                    self.newdest()
                 gevent.sleep(0.1)
                 self.botalive.wait()
                 self.running.wait()
-
         self.spawn(startGame)
         return True
 
@@ -100,11 +102,17 @@ class GameNamespace(BaseNamespace):
 
     # moves the bot to a position toward the current destination
     def botmove(self):
-        direction = random.choice()
-        self.bot['xpos'] = max(min(self.bot.get('xpos') + random.randint(-5,5), self.bounds.get('xsup')), 0)
-        self.bot['ypos'] = max(min(self.bot.get('ypos') + random.randint(-5,5), self.bounds.get('ysup')), 0)
+        direction = bool(random.getrandbits(1))
+        if direction:
+            if self.bot.get('xpos') < self.dest.get('xpos'):
+                self.bot['xpos'] = self.bot.get('xpos') + 5
+            else:
+                self.bot['xpos'] = self.bot.get('xpos') - 5
+        else:
+            if self.bot.get('ypos') < self.dest.get('ypos'):
+                self.bot['ypos'] = self.bot.get('ypos') + 5
+            else:
+                self.bot['ypos'] = self.bot.get('ypos') - 5
+        # self.bot['xpos'] = max(min(self.bot.get('xpos') + random.randint(-5,5), self.bounds.get('xsup')), 0)
+        # self.bot['ypos'] = max(min(self.bot.get('ypos') + random.randint(-5,5), self.bounds.get('ysup')), 0)
         self.emit('botmove',{ 'coordx':self.bot.get('xpos'), 'coordy':self.bot.get('ypos') })
-
-    # def on_connection(request,socket,context):
-    #     # xsup = request.data.xsup
-    #     # ysup = request.data.ysup
