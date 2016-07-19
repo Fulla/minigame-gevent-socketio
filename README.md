@@ -1,7 +1,7 @@
 # Catch the dot Mini-game
 
 This is a mini-game made for learning purposes.
-Here, I've tried gevent-socketio technologie for full-duplex server - client communication.
+Here, I've tried gevent-socketio technologies for full-duplex server - client communication.
 Also, I've tried the html5 canvas and played with the animation loop to redraw it according to the changes in game.
 
 The game consists of a display in which there are two points, the bot (in green) and the player (in white).
