@@ -4,7 +4,6 @@ $(function(){
   var gameloop;
   var running;
   var user = {
-    'speed':50,
     'xpos': 0,
     'ypos': 0
   };
@@ -62,19 +61,25 @@ $(function(){
 
   // update the movement made by the user in the last deltaTime
   var updUserPos = function(deltaTime){
+    var mov = {
+      'x': 0,
+      'y': 0,
+    }
+
+    var movy = 0
     if(38 in keys){ // up arrow
-      user.ypos -= user.speed * deltaTime;
+      mov.y = -1
     };
     if(40 in keys){ // down arrow
-      user.ypos += user.speed * deltaTime;
+      mov.y = 1
     };
     if(37 in keys){ // left arrow
-      user.xpos -= user.speed * deltaTime;
+      mov.x = -1
     };
     if(39 in keys){ // right arrow
-      user.xpos += user.speed * deltaTime;
+      mov.x = 1
     };
-    socket.emit('move',user);  // sends the user new position to server
+    socket.emit('move', mov);  // sends the user new position to server
   };
 
   // each frame, this function is called to update the state of the game
@@ -102,7 +107,7 @@ $(function(){
   var resumeGame = function(){
     previousRend = Date.now();
     socket.emit('resume');
-    gameloop = window.setInterval(updateCycle,200);
+    gameloop = window.setInterval(updateCycle,100);
   };
 
   var setupGame = function(data){
@@ -113,7 +118,13 @@ $(function(){
   var botmoved = function(data){
     bot.xpos = data.coordx;
     bot.ypos = data.coordy;
-    console.log(bot);
+    console.log('bot: ' + bot);
+  };
+
+  var usermoved = function(data){
+    user.xpos = data.coordx;
+    user.ypos = data.coordy;
+    console.log('user: ' + user);
   };
 
   var collision = function(data){
@@ -131,6 +142,7 @@ $(function(){
     socket.on("connect",resumeGame);
     socket.on("init",setupGame);
     socket.on("botmove",botmoved);
+    socket.on("usermove",usermoved);
     socket.on("collision",collision);
     // socket.on("message",messaged);
     socket.on("disconnect",disconnected);
