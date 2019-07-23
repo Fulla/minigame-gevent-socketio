@@ -2,7 +2,6 @@ $(function(){
 
   // Game objects setup
   var gameloop;
-  var running;
   var user = {
     'xpos': 0,
     'ypos': 0
@@ -20,12 +19,7 @@ $(function(){
       keys[e.keyCode] = true;
     }
     else {
-      if (running) {
-        pauseGame();
-      }
-      else {
-        resumeGame();
-      }
+      switchPause()
     }
   }, false);
   document.addEventListener("keyup",function(e){
@@ -42,11 +36,11 @@ $(function(){
     canvasCtx.clearRect(0,0, canvasVisor.width, canvasVisor.height);
     // render user
     canvasCtx.fillStyle = "#FFFFFF";
-    canvasCtx.fillRect(user.xpos, user.ypos, 30, 30);
+    canvasCtx.fillRect(user.xpos -15, user.ypos - 15, 30, 30);
     // render bot
     if (bot!={}) {
       canvasCtx.fillStyle = "#AACC88";
-      canvasCtx.fillRect(bot.xpos, bot.ypos, 30, 30);
+      canvasCtx.fillRect(bot.xpos - 15, bot.ypos - 15, 30, 30);
     }
     // render the explosions
     var now = Date.now();
@@ -101,14 +95,18 @@ $(function(){
 
   var pauseGame = function(){
     window.clearInterval(gameloop);
-    socket.emit('pause');
+    // socket.emit('pause');
   }
 
   var resumeGame = function(){
     previousRend = Date.now();
-    socket.emit('resume');
+    // socket.emit('resume');
     gameloop = window.setInterval(updateCycle,100);
   };
+
+  var switchPause = function() {
+    socket.emit('pause');
+  }
 
   var setupGame = function(data){
     user.xpos = data.coordx;
@@ -118,13 +116,13 @@ $(function(){
   var botmoved = function(data){
     bot.xpos = data.coordx;
     bot.ypos = data.coordy;
-    console.log('bot: ' + bot);
+    console.log('bot: (%s, %s)', bot.xpos, bot.ypos);
   };
 
   var usermoved = function(data){
     user.xpos = data.coordx;
     user.ypos = data.coordy;
-    console.log('user: ' + user);
+    console.log('user: (%s, %s)', user.xpos, user.ypos);
   };
 
   var collision = function(data){
@@ -139,7 +137,7 @@ $(function(){
 
   var start = function(){
     socket = io.connect('/game');
-    socket.on("connect",resumeGame);
+    socket.on("connect", switchPause);
     socket.on("init",setupGame);
     socket.on("botmove",botmoved);
     socket.on("usermove",usermoved);
@@ -147,6 +145,8 @@ $(function(){
     // socket.on("message",messaged);
     socket.on("disconnect",disconnected);
     // pass method updateCycle as callback of the requestAnimationFrame function so, each frame, updateCycle will be evaluated
+    socket.on("pause",pauseGame);
+    socket.on("resume",resumeGame);
   };
 
   start();

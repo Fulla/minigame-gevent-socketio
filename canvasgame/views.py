@@ -33,15 +33,18 @@ class GameNamespace(BaseNamespace):
         self.bounds = {'xsup':994, 'ysup':738 }
         self.dest = {'xpos':0,'ypos':0}
         self.lastmove = {'x': 0, 'y': 0}
+        self.paused = True
 
     # when the user sets the pause state
     def on_pause(self):
-        self.running.clear()
-        return True
-
-    # when the user quits the pause state
-    def on_resume(self):
-        self.running.set()
+        if self.paused:
+            self.paused = False
+            self.running.set()
+            self.emit('resume')
+        else:
+            self.paused = True
+            self.running.clear()
+            self.emit('pause')
         return True
 
     # when the client activates an event to move the user
@@ -51,7 +54,7 @@ class GameNamespace(BaseNamespace):
 
     # cheks if a collition between the user and the bot has happened. If it is the case, destroys and resets the bot
     def detectCollision(self):
-        if abs( self.user.get('xpos') - self.bot.get('xpos') ) < 10 and abs( self.user.get('ypos') - self.bot.get('ypos') ) < 10:
+        if abs( self.user.get('xpos') - self.bot.get('xpos') ) < 30 and abs( self.user.get('ypos') - self.bot.get('ypos') ) < 30:
             self.emit('collision',{ 'coordx':self.bot.get('xpos'), 'coordy':self.bot.get('ypos') })
             self.botalive.clear()
             self.botreset()
@@ -116,8 +119,6 @@ class GameNamespace(BaseNamespace):
                 self.bot['ypos'] = self.bot.get('ypos') + 5
             else:
                 self.bot['ypos'] = self.bot.get('ypos') - 5
-        # self.bot['xpos'] = max(min(self.bot.get('xpos') + random.randint(-5,5), self.bounds.get('xsup')), 0)
-        # self.bot['ypos'] = max(min(self.bot.get('ypos') + random.randint(-5,5), self.bounds.get('ysup')), 0)
         self.emit('botmove',{ 'coordx':self.bot.get('xpos'), 'coordy':self.bot.get('ypos') })
 
     def usermove(self):
