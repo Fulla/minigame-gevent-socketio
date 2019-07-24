@@ -29,11 +29,14 @@ class GameNamespace(BaseNamespace):
         self.botalive = Event()
         self.running = Event()
         self.user = {'xpos':0,'ypos':0}
-        self.bot = {'xpos':300,'ypos':300}
-        self.bounds = {'xsup':994, 'ysup':738 }
+        self.bot = {'xpos':100,'ypos':100}
+        self.bounds = {'xsup':400, 'ysup':300 }
         self.dest = {'xpos':0,'ypos':0}
         self.lastmove = {'x': 0, 'y': 0}
         self.paused = True
+        self.maxDist = 70
+        # the size of the player and bot is 10x10, so there're virtually
+        # 40 horizontal slots per 30 vertical slots to be into
 
     # when the user sets the pause state
     def on_pause(self):
@@ -54,7 +57,7 @@ class GameNamespace(BaseNamespace):
 
     # cheks if a collition between the user and the bot has happened. If it is the case, destroys and resets the bot
     def detectCollision(self):
-        if abs( self.user.get('xpos') - self.bot.get('xpos') ) < 30 and abs( self.user.get('ypos') - self.bot.get('ypos') ) < 30:
+        if abs( self.user.get('xpos') - self.bot.get('xpos') ) < 10 and abs( self.user.get('ypos') - self.bot.get('ypos') ) < 10:
             self.emit('collision',{ 'coordx':self.bot.get('xpos'), 'coordy':self.bot.get('ypos') })
             self.botalive.clear()
             self.botreset()
@@ -72,12 +75,12 @@ class GameNamespace(BaseNamespace):
     def newdest(self):
         xpos = self.bot.get('xpos', 0)
         ypos = self.bot.get('ypos', 0)
-        self.dest['xpos'] = random.randint(min(0, xpos - 20), max(self.bounds.get('xsup'), xpos + 20))
-        self.dest['ypos'] = random.randint(min(0, ypos - 20), max(self.bounds.get('xsup'), ypos + 20))
+        self.dest['xpos'] = random.randint(max(0, xpos - self.maxDist), min(self.bounds.get('xsup'), xpos + self.maxDist))
+        self.dest['ypos'] = random.randint(max(0, ypos - self.maxDist), min(self.bounds.get('ysup'), ypos + self.maxDist))
 
     # returs true if the current position of the bot is next to the current destination
     def arrivesdest(self):
-        if abs( self.bot.get('xpos') - self.dest.get('xpos') ) < 5 and abs( self.bot.get('ypos') - self.dest.get('ypos') ) < 5:
+        if abs( self.bot.get('xpos') - self.dest.get('xpos') ) < 10 and abs( self.bot.get('ypos') - self.dest.get('ypos') ) < 10:
             return True
         return False
 
@@ -108,21 +111,30 @@ class GameNamespace(BaseNamespace):
 
     # moves the bot to a position toward the current destination
     def botmove(self):
-        direction = bool(random.getrandbits(1))
-        if direction:
-            if self.bot.get('xpos') < self.dest.get('xpos'):
-                self.bot['xpos'] = self.bot.get('xpos') + 5
-            else:
-                self.bot['xpos'] = self.bot.get('xpos') - 5
-        else:
-            if self.bot.get('ypos') < self.dest.get('ypos'):
-                self.bot['ypos'] = self.bot.get('ypos') + 5
-            else:
-                self.bot['ypos'] = self.bot.get('ypos') - 5
+        willMovX = bool(random.getrandbits(1))
+        willMovY = bool(random.getrandbits(1))
+
+        difX = self.dest.get('xpos') - self.bot.get('xpos')
+        speedX = 0
+        if difX < 0:
+            speedX = min((difX / self.maxDist) * 5, -2) * willMovX
+        if difX > 0:
+            speedX = max((difX / self.maxDist) * 5, 2) * willMovX
+
+        difY = self.dest.get('ypos') - self.bot.get('ypos')
+        speedY = 0
+        if difY < 0:
+            speedY = min((difY / self.maxDist) * 5, -2) * willMovY
+        if difY > 0:
+            speedY = max((difY / self.maxDist) * 5, 2) * willMovY
+
+        self.bot['xpos'] = self.bot['xpos'] + speedX
+        self.bot['ypos'] = self.bot['ypos'] + speedY
         self.emit('botmove',{ 'coordx':self.bot.get('xpos'), 'coordy':self.bot.get('ypos') })
 
+
     def usermove(self):
-        userx = self.user.get('xpos') + self.lastmove.get('x') * 3
-        usery = self.user.get('ypos') + self.lastmove.get('y') * 3
+        userx = self.user.get('xpos') + self.lastmove.get('x')
+        usery = self.user.get('ypos') + self.lastmove.get('y')
         self.user = { 'xpos': userx, 'ypos': usery}
         self.emit('usermove', { 'coordx': userx, 'coordy': usery })

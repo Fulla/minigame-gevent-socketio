@@ -1,21 +1,22 @@
 
 #mapcanvas {
-  width: 720px;
-  height: 400px;
-  margin-left: 20%;
-  margin-top: 5%;
+  width: 300px;
+  margin: 10px auto;
+  flex-basis: 55%;
   background-color: #EEEEEE;
 }
 
 .container {
   display: flex;
   flex-direction: column;
+  background-color: #454545;
 }
 
 .container div {
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: 100px;
+  display: flex;
 }
 
 .header {

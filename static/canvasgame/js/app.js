@@ -36,7 +36,7 @@ $(function(){
     canvasCtx.clearRect(0,0, canvasVisor.width, canvasVisor.height);
     // render user
     canvasCtx.fillStyle = "#FFFFFF";
-    canvasCtx.fillRect(user.xpos -15, user.ypos - 15, 30, 30);
+    canvasCtx.fillRect(user.xpos - 15, user.ypos - 15, 30, 30);
     // render bot
     if (bot!={}) {
       canvasCtx.fillStyle = "#AACC88";
@@ -46,7 +46,7 @@ $(function(){
     var now = Date.now();
     for(exp in explosions){
       canvasCtx.fillStyle = "#5500AA";
-      canvasCtx.fillRect(exp.xpos + 15, exp.ypos + 15, 10, 10);
+      canvasCtx.fillRect(exp.xpos - 15, exp.ypos - 15, 30, 30);
       if(now - exp.time > 5000){
         explosions.pop(exp);
       };
@@ -60,7 +60,6 @@ $(function(){
       'y': 0,
     }
 
-    var movy = 0
     if(38 in keys){ // up arrow
       mov.y = -1
     };
@@ -114,22 +113,28 @@ $(function(){
   };
 
   var botmoved = function(data){
-    bot.xpos = data.coordx;
-    bot.ypos = data.coordy;
-    console.log('bot: (%s, %s)', bot.xpos, bot.ypos);
+    // as server board has 400x300, and client board has 1200x900,
+    // we need to convert positions to system (by multiplying x and y to 3)
+    bot.xpos = data.coordx * 3;
+    bot.ypos = data.coordy * 3;
+    console.log('bot: (%s, %s)', data.coordx, data.coordy);
   };
 
   var usermoved = function(data){
-    user.xpos = data.coordx;
-    user.ypos = data.coordy;
-    console.log('user: (%s, %s)', user.xpos, user.ypos);
+    // as server board has 400x300, and client board has 1200x900,
+    // we need to convert positions to system (by multiplying x and y to 3)
+    user.xpos = data.coordx * 3;
+    user.ypos = data.coordy * 3;
+    console.log('user: (%s, %s)', data.coordx, data.coordy);
   };
 
   var collision = function(data){
+    // as server board has 400x300, and client board has 1200x900,
+    // we need to convert positions to system (by multiplying x and y to 3)
     var col = {};
     col.time = Date.now();
-    col.xpos = data.coordx;
-    col.ypos = data.coordy;
+    col.xpos = data.coordx * 3;
+    col.ypos = data.coordy * 3;
     explosions.push(col);  // add in the list of explosions the coordinades and the generation time
     console.log("collided");
     bot = {};
