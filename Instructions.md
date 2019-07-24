@@ -7,7 +7,9 @@ The board is a box of 400 (horizontal) x 300 (vertical). Both user and bot dots 
 ![canvas](canvas.png)
 
 The client app should connect through websocket to the endpoint at `/game`
-using socket.io (`https://cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js`).
+using socket.io (`https://cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js`), and comunicate with it through events. 
+
+The client app must refect on the canvas the state of the game board, according to what is being comunicated by server at each moment. Also, client should inform to the server the player's movements, so player can interact in the game.
 
 ## Server interface description
 
@@ -38,18 +40,28 @@ Whenever a collision is produced, the server will stop sending bot and user coor
 
 ## Requirements
 
-The javascript client needs to be compo
+You need to create the client side of the dot persuit minigame. 
 
-After the client connects to the server, the game state will be `paused`, so the client needs to send a `pause` event in order to start.
-
-- You should create a javascript that will draw a html5 canvas on the div with id `mapcanvas`.
+- You should create a javascript that will draw on the html5 canvas with id `mapcanvas` (you can check the html at `/canvasgame/templates/canvasgame/app.html`).
 Note that the div has height `300` and width `400`, which is the resolution of the canvas (not the size). You can style the div to have any size you want.
 
-- You must render the canvas every 20 milliseconds (that is the frequency with which server sends user and bot positions.
+- You need to fill `static/canvasgame/js/app.js` with your JS code, and `static/canvasgame/css/app.css` with your styles.
+
+- After the client connects to the server, the game state will be `paused`, so the client needs to send a `pause` event in order to start.
+
+- You must render the canvas every 20 milliseconds (that is the frequency with which server sends user and bot positions). At every moment, canvas must reflect the current position both for bot and user. Whenever there's a collision, you need to draw some indication about it. After 2 seconds from the collision, server will start sending bot and user positions again.
 
 - As this is an interactive application, you need to capture player's keypress in order to detect the move the client needs to send. (It's suggested to move the player's character using the arrow keys, and the spacebar being the `pause`). You need to send this captured movements also every 20 milliseconds so the server can reflect the user movement on each time span.
 
 For all cases, the x and y coords are for the center of the user / bot box. You need to consider that in order to draw them, so what is rendered is consistent with the collisions detected by the server.
 
 You can, as an extra, draw messages whenever a collision occurs (i.e. when the user has catched the bot); keep a count of catches; or other thing you think it would be nice to show in the user interface.
+
+
+**Important note**
+About `repl`.
+
+To run the application you need to click on the green `start` button on top of the interface.
+
+The page should render in the browser panel at the right, but you will need to open by clickig at `open in a new tab`(at the side of the panel's directions bar). But also, as server does not support https, you will need to replace in the address the `https` by `http`. Then the page should start rendering.
 
