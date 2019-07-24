@@ -5,6 +5,7 @@ from socketio.namespace import BaseNamespace
 from socketio.sdjango import namespace
 from socketio import socketio_manage
 import random
+import math
 import gevent
 from gevent.event import Event
 import logging
@@ -34,7 +35,7 @@ class GameNamespace(BaseNamespace):
         self.dest = {'xpos':0,'ypos':0}
         self.lastmove = {'x': 0, 'y': 0}
         self.paused = True
-        self.maxDist = 70
+        self.maxDist = 100
         # the size of the player and bot is 10x10, so there're virtually
         # 40 horizontal slots per 30 vertical slots to be into
 
@@ -52,7 +53,17 @@ class GameNamespace(BaseNamespace):
 
     # when the client activates an event to move the user
     def on_move(self,mov):
-        self.lastmove = {'x': mov.get('x', 0), 'y': mov.get('y', 0)}
+        movx = mov.get('x', 0)
+        if movx > 0:
+            movx = 1
+        if movx < 0:
+            movx = -1
+        movy = mov.get('y', 0)
+        if movy > 0:
+            movy = 1
+        if movy < 0:
+            movy = -1
+        self.lastmove = {'x': movx, 'y': movy}
         return True
 
     # cheks if a collition between the user and the bot has happened. If it is the case, destroys and resets the bot
@@ -99,7 +110,7 @@ class GameNamespace(BaseNamespace):
                 self.detectCollision()
                 if self.arrivesdest():
                     self.newdest()
-                gevent.sleep(0.01)
+                gevent.sleep(0.02)
                 self.botalive.wait()
                 self.running.wait()
         self.spawn(startGame)
@@ -117,16 +128,16 @@ class GameNamespace(BaseNamespace):
         difX = self.dest.get('xpos') - self.bot.get('xpos')
         speedX = 0
         if difX < 0:
-            speedX = min((difX / self.maxDist) * 5, -2) * willMovX
+            speedX = math.floor((difX / self.maxDist) * 10) * willMovX
         if difX > 0:
-            speedX = max((difX / self.maxDist) * 5, 2) * willMovX
+            speedX = math.ceil((difX / self.maxDist) * 10) * willMovX
 
         difY = self.dest.get('ypos') - self.bot.get('ypos')
         speedY = 0
         if difY < 0:
-            speedY = min((difY / self.maxDist) * 5, -2) * willMovY
+            speedY = math.floor((difY / self.maxDist) * 10) * willMovY
         if difY > 0:
-            speedY = max((difY / self.maxDist) * 5, 2) * willMovY
+            speedY = math.ceil((difY / self.maxDist) * 10) * willMovY
 
         self.bot['xpos'] = self.bot['xpos'] + speedX
         self.bot['ypos'] = self.bot['ypos'] + speedY
@@ -134,7 +145,10 @@ class GameNamespace(BaseNamespace):
 
 
     def usermove(self):
-        userx = self.user.get('xpos') + self.lastmove.get('x')
-        usery = self.user.get('ypos') + self.lastmove.get('y')
+        userx = self.user.get('xpos') + self.lastmove.get('x') * 2
+        userx = max(min(userx, self.bounds.get('xsup')), 0)
+        usery = self.user.get('ypos') + self.lastmove.get('y') * 2
+        usery = max(min(usery, self.bounds.get('ysup')), 0)
+        self.lastmove = { 'x': 0, 'y': 0}
         self.user = { 'xpos': userx, 'ypos': usery}
         self.emit('usermove', { 'coordx': userx, 'coordy': usery })
