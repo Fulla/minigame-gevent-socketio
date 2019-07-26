@@ -128,16 +128,16 @@ class GameNamespace(BaseNamespace):
         difX = self.dest.get('xpos') - self.bot.get('xpos')
         speedX = 0
         if difX < 0:
-            speedX = math.floor((difX / self.maxDist) * 10) * willMovX
+            speedX = math.floor((difX / self.maxDist) * 15) * willMovX
         if difX > 0:
-            speedX = math.ceil((difX / self.maxDist) * 10) * willMovX
+            speedX = math.ceil((difX / self.maxDist) * 15) * willMovX
 
         difY = self.dest.get('ypos') - self.bot.get('ypos')
         speedY = 0
         if difY < 0:
-            speedY = math.floor((difY / self.maxDist) * 10) * willMovY
+            speedY = math.floor((difY / self.maxDist) * 15) * willMovY
         if difY > 0:
-            speedY = math.ceil((difY / self.maxDist) * 10) * willMovY
+            speedY = math.ceil((difY / self.maxDist) * 15) * willMovY
 
         self.bot['xpos'] = self.bot['xpos'] + speedX
         self.bot['ypos'] = self.bot['ypos'] + speedY

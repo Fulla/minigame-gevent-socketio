@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(geventiotest.settings.BASE_DIR, "apps"))
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE','geventiotest.settings')
     app = get_wsgi_application()
-    print 'Listening on port 9000 and on port 843 (flash policy server)'
+    print('Listening on port 9000 and on port 843 (flash policy server)')
     SocketIOServer(('0.0.0.0', PORT), app, resource="socket.io", policy_server=True,
         policy_listener=('0.0.0.0', 10843)).serve_forever()
 

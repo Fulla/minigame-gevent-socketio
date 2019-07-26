@@ -17,7 +17,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 import socketio.sdjango
 from canvasgame.views import CanvasGame, socketio_service
-import settings
+from .settings import DEBUG, STATIC_URL, STATIC_ROOT
 from django.conf.urls.static import static
 
 socketio.sdjango.autodiscover()
@@ -28,5 +28,5 @@ urlpatterns = [
     url("^$", CanvasGame, name="game"),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+if DEBUG:
+    urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)
